@@ -2,19 +2,19 @@
   <div class="panel__heading">
     <div>
       <p class="eyebrow">7-day signal</p>
-      <h2>Workload vs. capacity</h2>
+      <h2>Order activity</h2>
     </div>
     <div class="legend" aria-label="Chart legend">
       <span><i class="legend__key legend__key--intake"></i>Intake</span>
       <span><i class="legend__key legend__key--completed"></i>Completed</span>
-      <span><i class="legend__key legend__key--capacity"></i>Capacity</span>
+      <span><i class="legend__key legend__key--cancelled"></i>Cancelled</span>
     </div>
   </div>
 
   <div
     class="chart"
     role="img"
-    aria-label="Grouped bar chart comparing daily intake, completed work, and team capacity"
+    aria-label="Grouped bar chart comparing daily order intake, completions, and cancellations"
   >
     <div class="chart__grid" aria-hidden="true">
       <span></span><span></span><span></span><span></span>
@@ -33,9 +33,9 @@
             [title]="point.completed + ' completed'"
           ></span>
           <span
-            class="chart__bar chart__bar--capacity"
-            [style.height]="height(point.capacity)"
-            [title]="point.capacity + ' capacity'"
+            class="chart__bar chart__bar--cancelled"
+            [style.height]="height(point.cancelled)"
+            [title]="point.cancelled + ' cancelled'"
           ></span>
         </div>
         <span class="chart__label">{{ point.label }}</span>

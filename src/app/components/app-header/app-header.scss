@@ -110,6 +110,11 @@
   width: 0.42rem;
 }
 
+.sync__dot--warning {
+  background: #f0b84b;
+  box-shadow: 0 0 0 0.22rem rgb(240 184 75 / 13%);
+}
+
 .refresh {
   align-items: center;
   background: #17253a;

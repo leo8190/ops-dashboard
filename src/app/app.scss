@@ -74,31 +74,238 @@ h1 {
   background: #20334b;
 }
 
-.demo-note {
+.connection-note {
   align-items: center;
-  background: #eaf5f4;
-  border: 1px solid #cce5e2;
+  background: #edf3f8;
+  border: 1px solid #d7e2eb;
   border-radius: 0.65rem;
-  color: #315e5a;
+  color: var(--text-muted);
+  display: flex;
+  font-size: 0.72rem;
+  gap: 0.7rem;
+  margin-top: 1.3rem;
+  padding: 0.75rem 0.85rem;
+}
+
+.connection-note--live {
+  background: #eaf7f2;
+  border-color: #cde9de;
+}
+
+.connection-note--warning {
+  background: #fff7e8;
+  border-color: #efdbaa;
+}
+
+.connection-note__dot {
+  background: #718397;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  height: 0.55rem;
+  width: 0.55rem;
+}
+
+.connection-note--live .connection-note__dot {
+  background: #28a173;
+}
+
+.connection-note--warning .connection-note__dot {
+  background: #d79726;
+}
+
+.connection-note div {
+  margin-right: auto;
+}
+
+.connection-note strong {
+  color: var(--text-strong);
+  display: block;
+}
+
+.connection-note p {
+  margin: 0;
+}
+
+.connection-note code,
+.create-card code {
+  color: inherit;
+  font-size: 0.68rem;
+}
+
+.connection-note button {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 0.45rem;
+  color: var(--text-strong);
+  font-size: 0.65rem;
+  font-weight: 720;
+  padding: 0.5rem 0.65rem;
+}
+
+.connection-note button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.feedback {
+  align-items: center;
+  border: 1px solid;
+  border-radius: 0.6rem;
   display: flex;
   font-size: 0.69rem;
-  gap: 0.55rem;
-  margin-top: 1.3rem;
+  gap: 0.65rem;
+  margin-top: 0.7rem;
+  padding: 0.62rem 0.8rem;
+}
+
+.feedback--error {
+  background: #fdf0f1;
+  border-color: #f0c9cc;
+  color: #84323a;
+}
+
+.feedback--success {
+  background: #ebf7f2;
+  border-color: #c9e8dc;
+  color: #245f4d;
+}
+
+.feedback span {
+  margin-right: auto;
+}
+
+.feedback button {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font-size: 1rem;
+}
+
+.create-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  margin-top: 1rem;
+  padding: 1.2rem;
+  scroll-margin-top: 5.5rem;
+}
+
+.create-card__heading {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+}
+
+.create-card__heading h2 {
+  font-size: 1.05rem;
+}
+
+.create-card__heading > span {
+  background: #edf5f4;
+  border-radius: 999px;
+  color: var(--teal-dark);
+  font-size: 0.62rem;
+  font-weight: 720;
+  padding: 0.35rem 0.55rem;
+}
+
+.create-card form {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: 1fr 1fr 0.65fr;
+  margin-top: 1rem;
+}
+
+.create-card label > span:first-child {
+  color: var(--text-strong);
+  display: block;
+  font-size: 0.67rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.create-card input,
+.create-card select,
+.create-card textarea {
+  background: #f9fbfc;
+  border: 1px solid var(--border);
+  border-radius: 0.45rem;
+  color: var(--text-strong);
+  font: inherit;
+  font-size: 0.72rem;
+  padding: 0.62rem;
+  width: 100%;
+}
+
+.create-card textarea {
+  resize: vertical;
+}
+
+.create-card input:focus,
+.create-card select:focus,
+.create-card textarea:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 0.18rem rgb(45 155 148 / 14%);
+  outline: 0;
+}
+
+.create-card input.ng-invalid.ng-touched,
+.create-card textarea.ng-invalid.ng-touched {
+  border-color: #c14b55;
+}
+
+.create-card label small {
+  color: var(--text-subtle);
+  display: block;
+  font-size: 0.59rem;
+  margin-top: 0.3rem;
+}
+
+.description-field {
+  grid-column: span 2;
+}
+
+.input-action {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.input-action button {
+  background: #edf5f4;
+  border: 1px solid #cbe3e0;
+  border-radius: 0.45rem;
+  color: var(--teal-dark);
+  flex: 0 0 auto;
+  font-size: 0.62rem;
+  font-weight: 720;
+  padding: 0 0.6rem;
+}
+
+.create-card__submit {
+  align-items: center;
+  border-top: 1px solid var(--border-soft);
+  color: var(--text-subtle);
+  display: flex;
+  font-size: 0.62rem;
+  grid-column: 1 / -1;
+  justify-content: space-between;
+  padding-top: 0.8rem;
+}
+
+.create-card__submit > button {
+  background: var(--text-strong);
+  border: 0;
+  border-radius: 0.5rem;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 720;
   padding: 0.65rem 0.8rem;
 }
 
-.demo-note svg {
-  fill: none;
-  flex: 0 0 auto;
-  height: 1rem;
-  stroke: #297b75;
-  stroke-linecap: round;
-  stroke-width: 1.7;
-  width: 1rem;
-}
-
-.demo-note p {
-  margin: 0;
+.create-card__submit > button:disabled {
+  cursor: wait;
+  opacity: 0.6;
 }
 
 .metrics {
@@ -113,6 +320,48 @@ h1 {
   gap: 0.9rem;
   grid-template-columns: minmax(0, 2.1fr) minmax(15rem, 0.9fr);
   margin-top: 0.9rem;
+}
+
+.integration-panel {
+  background: #0f1d30;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  color: #b7c4d3;
+  padding: 1.25rem;
+}
+
+.integration-panel .eyebrow {
+  color: #55c5bd;
+}
+
+.integration-panel h2 {
+  color: #fff;
+  font-size: 1rem;
+}
+
+.integration-panel ul {
+  display: grid;
+  gap: 0.7rem;
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.integration-panel li {
+  border-top: 1px solid #2a394d;
+  display: grid;
+  gap: 0.15rem;
+  padding-top: 0.65rem;
+}
+
+.integration-panel li strong {
+  color: #eef4fa;
+  font-size: 0.68rem;
+}
+
+.integration-panel li span {
+  font-size: 0.62rem;
+  line-height: 1.45;
 }
 
 .workflows {
@@ -220,7 +469,7 @@ h1 {
   color: var(--text-strong);
 }
 
-.team-filter select {
+.priority-filter select {
   appearance: none;
   background:
     linear-gradient(45deg, transparent 50%, #65768a 50%) calc(100% - 0.8rem) 50% / 4px 4px no-repeat,
@@ -298,6 +547,14 @@ footer {
     grid-template-columns: 1fr;
   }
 
+  .create-card form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .idempotency-field {
+    grid-column: 1 / -1;
+  }
+
   .search {
     flex-basis: 100%;
   }
@@ -339,11 +596,32 @@ footer {
 
   .status-filters {
     display: grid;
-    grid-template-columns: repeat(4, max-content);
+    grid-template-columns: repeat(5, max-content);
   }
 
-  .team-filter,
-  .team-filter select {
+  .priority-filter,
+  .priority-filter select {
     width: 100%;
+  }
+
+  .connection-note,
+  .create-card__heading,
+  .create-card__submit {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .connection-note button,
+  .create-card__submit > button {
+    width: 100%;
+  }
+
+  .create-card form {
+    grid-template-columns: 1fr;
+  }
+
+  .description-field,
+  .idempotency-field {
+    grid-column: auto;
   }
 }

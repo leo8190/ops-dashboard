@@ -11,7 +11,10 @@ export class WorkloadChart {
   readonly data = input.required<readonly WorkloadPoint[]>();
 
   private readonly maxValue = computed(() =>
-    Math.max(1, ...this.data().flatMap((point) => [point.intake, point.completed, point.capacity])),
+    Math.max(
+      1,
+      ...this.data().flatMap((point) => [point.intake, point.completed, point.cancelled]),
+    ),
   );
 
   protected height(value: number): string {

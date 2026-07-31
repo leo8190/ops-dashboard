@@ -2,124 +2,247 @@
 
 <app-header
   [lastSynced]="lastSynced()"
-  [refreshing]="refreshing()"
+  [refreshing]="loading()"
+  [mode]="connectionMode()"
   (refreshRequested)="refreshData()"
 />
 
 <main id="main-content">
   <section class="hero" id="overview" aria-labelledby="page-title">
     <div>
-      <p class="eyebrow">Simulated operations workspace</p>
-      <h1 id="page-title">Operations overview</h1>
-      <p class="hero__lead">Keep work moving before risk becomes an incident.</p>
+      <p class="eyebrow">OrderFlow operations client</p>
+      <h1 id="page-title">Order operations overview</h1>
+      <p class="hero__lead">
+        Create, inspect, and safely advance orders through a real API contract.
+      </p>
     </div>
-    <button class="risk-button" type="button" (click)="showSlaRisks()">
-      Review SLA risks
+    <button class="risk-button" type="button" (click)="focusCreateForm()">
+      Create an order
       <span aria-hidden="true">→</span>
     </button>
   </section>
 
-  <aside class="demo-note" aria-label="Portfolio demo disclosure">
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="8"></circle>
-      <path d="M12 10.5v5m0-8v.1"></path>
-    </svg>
-    <p>
-      <strong>Portfolio demo.</strong>
-      Every company, person, metric, and operational event on this page is fictional.
-    </p>
+  <aside
+    class="connection-note"
+    [class.connection-note--live]="connectionMode() === 'live'"
+    [class.connection-note--warning]="connectionMode() === 'demo' || connectionMode() === 'offline'"
+    aria-live="polite"
+  >
+    <span class="connection-note__dot" aria-hidden="true"></span>
+    <div>
+      @switch (connectionMode()) {
+        @case ('live') {
+          <strong>Live OrderFlow API</strong>
+          <p>
+            Orders and actions are loaded from <code>{{ operations.apiBaseUrl }}</code
+            >.
+          </p>
+        }
+        @case ('offline') {
+          <strong>API connection lost</strong>
+          <p>The last live snapshot remains visible. Refresh to reconnect before changing data.</p>
+        }
+        @case ('demo') {
+          <strong>Offline demo fallback</strong>
+          <p>
+            Sample orders and all changes are local to this browser; no backend is being changed.
+          </p>
+        }
+        @default {
+          <strong>Connecting to OrderFlow API</strong>
+          <p>
+            Checking <code>{{ operations.apiBaseUrl }}</code
+            >…
+          </p>
+        }
+      }
+    </div>
+    <button type="button" [disabled]="loading()" (click)="refreshData()">
+      {{ loading() ? 'Connecting…' : 'Retry API' }}
+    </button>
   </aside>
 
-  <section class="metrics" aria-label="Key performance indicators">
-    @for (metric of metrics; track metric.label) {
+  @if (error()) {
+    <div class="feedback feedback--error" role="alert">
+      <strong>Request issue</strong>
+      <span>{{ error() }}</span>
+      <button type="button" (click)="operations.clearFeedback()" aria-label="Dismiss error">
+        ×
+      </button>
+    </div>
+  }
+
+  @if (notice()) {
+    <div class="feedback feedback--success" role="status">
+      <strong>Request complete</strong>
+      <span>{{ notice() }}</span>
+      <button type="button" (click)="operations.clearFeedback()" aria-label="Dismiss message">
+        ×
+      </button>
+    </div>
+  }
+
+  <section class="create-card" id="create-order" aria-labelledby="create-title">
+    <div class="create-card__heading">
+      <div>
+        <p class="eyebrow">Idempotent write</p>
+        <h2 id="create-title">Create or safely replay an order</h2>
+      </div>
+      <span>{{ connectionMode() === 'demo' ? 'Local demo request' : 'POST /api/v1/orders' }}</span>
+    </div>
+
+    <form [formGroup]="createForm" (ngSubmit)="createOrder()">
+      <label>
+        <span>External reference</span>
+        <input
+          id="external-reference"
+          type="text"
+          formControlName="externalReference"
+          placeholder="OPS-2026-0001"
+          autocomplete="off"
+          aria-describedby="external-reference-help"
+        />
+        <small id="external-reference-help"
+          >3–64 letters, numbers, dots, underscores, or dashes.</small
+        >
+      </label>
+
+      <label>
+        <span>Customer</span>
+        <input type="text" formControlName="customerName" placeholder="Northwind Traders" />
+        <small>2–100 characters.</small>
+      </label>
+
+      <label>
+        <span>Priority</span>
+        <select formControlName="priority">
+          <option value="Low">Low</option>
+          <option value="Normal">Normal</option>
+          <option value="High">High</option>
+          <option value="Critical">Critical</option>
+        </select>
+        <small>Critical orders appear first in the queue.</small>
+      </label>
+
+      <label class="description-field">
+        <span>Description</span>
+        <textarea
+          formControlName="description"
+          rows="3"
+          maxlength="500"
+          placeholder="Describe the operational work to complete."
+        ></textarea>
+        <small>5–500 characters.</small>
+      </label>
+
+      <label class="idempotency-field">
+        <span>Idempotency key</span>
+        <span class="input-action">
+          <input type="text" formControlName="idempotencyKey" autocomplete="off" />
+          <button type="button" (click)="regenerateIdempotencyKey()">New key</button>
+        </span>
+        <small>Submit the same body and key twice to verify that no duplicate is created.</small>
+      </label>
+
+      <div class="create-card__submit">
+        @if (createForm.invalid && createForm.touched) {
+          <span role="alert">Check the required fields and formats.</span>
+        } @else {
+          <span>The key is sent in the <code>Idempotency-Key</code> header.</span>
+        }
+        <button type="submit" [disabled]="creating()">
+          {{ creating() ? 'Sending…' : 'Create / replay order' }}
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section class="metrics" aria-label="Order metrics">
+    @for (metric of metrics(); track metric.label) {
       <app-metric-card [metric]="metric" />
     }
   </section>
 
-  <section class="signal-grid" aria-label="Operational signals">
-    <app-workload-chart [data]="workload" />
-    <app-incident-panel [incidents]="incidents()" (acknowledged)="acknowledgeIncident($event)" />
+  <section class="signal-grid" aria-label="OrderFlow integration signals">
+    <app-workload-chart [data]="workload()" />
+    <article class="integration-panel">
+      <p class="eyebrow">Integration contract</p>
+      <h2>Reliable by design</h2>
+      <ul>
+        <li>
+          <strong>Idempotent creation</strong><span>Repeat-safe writes through a request key.</span>
+        </li>
+        <li>
+          <strong>Explicit state machine</strong><span>Only valid transitions are shown.</span>
+        </li>
+        <li>
+          <strong>Problem details</strong
+          ><span>Validation and conflicts surface API messages.</span>
+        </li>
+        <li>
+          <strong>Offline continuity</strong
+          ><span>A clearly labelled demo keeps the UI explorable.</span>
+        </li>
+      </ul>
+    </article>
   </section>
 
   <section class="workflows" id="workflows" aria-labelledby="workflows-title">
     <div class="section-heading">
       <div>
         <p class="eyebrow">Execution queue</p>
-        <h2 id="workflows-title">Operational workflows</h2>
-        <p>Prioritize work using live status, ownership, and SLA context.</p>
+        <h2 id="workflows-title">Order workflows</h2>
+        <p>Filter the loaded API page, inspect state, and run only valid actions.</p>
       </div>
       <span class="result-summary" aria-live="polite">{{ resultSummary() }}</span>
     </div>
 
-    <div class="toolbar" aria-label="Workflow filters">
+    <div class="toolbar" aria-label="Order filters">
       <label class="search">
-        <span class="sr-only">Search workflows</span>
+        <span class="sr-only">Search orders</span>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="10.5" cy="10.5" r="5.5"></circle>
           <path d="m15 15 4 4"></path>
         </svg>
         <input
           type="search"
-          placeholder="Search ID, workflow, account, owner"
+          placeholder="Search reference, customer, description"
           [value]="searchTerm()"
           (input)="onSearch($event)"
         />
       </label>
 
       <div class="status-filters" aria-label="Filter by status">
-        <button
-          type="button"
-          data-filter="all"
-          [class.is-active]="statusFilter() === 'all'"
-          [attr.aria-pressed]="statusFilter() === 'all'"
-          (click)="setStatusFilter('all')"
-        >
-          All
-        </button>
-        <button
-          type="button"
-          data-filter="on-track"
-          [class.is-active]="statusFilter() === 'on-track'"
-          [attr.aria-pressed]="statusFilter() === 'on-track'"
-          (click)="setStatusFilter('on-track')"
-        >
-          On track
-        </button>
-        <button
-          type="button"
-          data-filter="at-risk"
-          [class.is-active]="statusFilter() === 'at-risk'"
-          [attr.aria-pressed]="statusFilter() === 'at-risk'"
-          (click)="setStatusFilter('at-risk')"
-        >
-          At risk
-        </button>
-        <button
-          type="button"
-          data-filter="blocked"
-          [class.is-active]="statusFilter() === 'blocked'"
-          [attr.aria-pressed]="statusFilter() === 'blocked'"
-          (click)="setStatusFilter('blocked')"
-        >
-          Blocked
-        </button>
+        @for (status of ['all', 'Received', 'Processing', 'Completed', 'Cancelled']; track status) {
+          <button
+            type="button"
+            [attr.data-filter]="status"
+            [class.is-active]="statusFilter() === status"
+            [attr.aria-pressed]="statusFilter() === status"
+            (click)="setStatusFilter($any(status))"
+          >
+            {{ status === 'all' ? 'All' : status }}
+          </button>
+        }
       </div>
 
-      <label class="team-filter">
-        <span class="sr-only">Filter by team</span>
-        <select [value]="teamFilter()" (change)="onTeamChange($event)">
-          @for (team of teams(); track team) {
-            <option [value]="team">{{ team }}</option>
-          }
+      <label class="priority-filter">
+        <span class="sr-only">Filter by priority</span>
+        <select [value]="priorityFilter()" (change)="onPriorityChange($event)">
+          <option value="all">All priorities</option>
+          <option value="Critical">Critical</option>
+          <option value="High">High</option>
+          <option value="Normal">Normal</option>
+          <option value="Low">Low</option>
         </select>
       </label>
 
-      @if (statusFilter() !== 'all' || teamFilter() !== 'All teams' || searchTerm()) {
+      @if (statusFilter() !== 'all' || priorityFilter() !== 'all' || searchTerm()) {
         <button class="reset" type="button" (click)="resetFilters()">Reset</button>
       }
     </div>
 
-    <div class="workflow-layout">
+    <div class="workflow-layout" [attr.aria-busy]="loading()">
       <div class="table-card">
         <app-work-item-table
           [items]="filteredItems()"
@@ -129,14 +252,22 @@
       </div>
       <app-work-item-detail
         [item]="selectedItem()"
+        [pending]="pendingOrderId() === selectedItemId()"
+        [mode]="connectionMode()"
         (closeRequested)="selectedItemId.set(null)"
-        (statusChanged)="updateSelectedStatus($event)"
+        (actionRequested)="performAction($event)"
       />
     </div>
   </section>
 </main>
 
 <footer>
-  <span>Ops Command Center · Angular portfolio demo</span>
-  <span>Built with fictional data for product and engineering demonstration.</span>
+  <span>Ops Command Center · Angular + OrderFlow API case study</span>
+  <span>
+    {{
+      connectionMode() === 'live'
+        ? 'Connected to the live API contract.'
+        : 'Fallback data is visibly simulated.'
+    }}
+  </span>
 </footer>

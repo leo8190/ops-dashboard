@@ -1,65 +1,168 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AppHeader } from './components/app-header/app-header';
-import { IncidentPanel } from './components/incident-panel/incident-panel';
 import { MetricCard } from './components/metric-card/metric-card';
 import { WorkItemDetail } from './components/work-item-detail/work-item-detail';
 import { WorkItemTable } from './components/work-item-table/work-item-table';
 import { WorkloadChart } from './components/workload-chart/workload-chart';
-import { OperationalStatus, WorkItem } from './core/operations.models';
+import {
+  CreateOrderRequest,
+  Metric,
+  Order,
+  OrderActionRequest,
+  OrderPriority,
+  OrderStatus,
+  WorkloadPoint,
+} from './core/operations.models';
 import { OperationsService } from './core/operations.service';
 
-type StatusFilter = 'all' | OperationalStatus;
+type StatusFilter = 'all' | OrderStatus;
+type PriorityFilter = 'all' | OrderPriority;
 
 @Component({
   selector: 'app-root',
-  imports: [AppHeader, IncidentPanel, MetricCard, WorkItemDetail, WorkItemTable, WorkloadChart],
+  imports: [
+    AppHeader,
+    MetricCard,
+    ReactiveFormsModule,
+    WorkItemDetail,
+    WorkItemTable,
+    WorkloadChart,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App {
-  private readonly operations = inject(OperationsService);
+export class App implements OnInit {
+  protected readonly operations = inject(OperationsService);
 
-  protected readonly metrics = this.operations.metrics;
-  protected readonly workload = this.operations.workload;
-  protected readonly incidents = this.operations.incidents;
-  protected readonly workItems = this.operations.workItems;
+  protected readonly orders = this.operations.orders;
+  protected readonly connectionMode = this.operations.connectionMode;
+  protected readonly loading = this.operations.loading;
+  protected readonly creating = this.operations.creating;
+  protected readonly pendingOrderId = this.operations.pendingOrderId;
+  protected readonly error = this.operations.error;
+  protected readonly notice = this.operations.notice;
+  protected readonly lastSynced = this.operations.lastSynced;
 
   protected readonly statusFilter = signal<StatusFilter>('all');
-  protected readonly teamFilter = signal('All teams');
+  protected readonly priorityFilter = signal<PriorityFilter>('all');
   protected readonly searchTerm = signal('');
   protected readonly selectedItemId = signal<string | null>(null);
-  protected readonly lastSynced = signal(new Date());
-  protected readonly refreshing = signal(false);
 
-  protected readonly teams = computed(() => [
-    'All teams',
-    ...new Set(this.workItems().map((item) => item.team)),
-  ]);
+  protected readonly createForm = new FormGroup({
+    externalReference: new FormControl('', {
+      nonNullable: true,
+      validators: [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(64),
+        Validators.pattern(/^[A-Za-z0-9][A-Za-z0-9._-]{2,63}$/),
+      ],
+    }),
+    customerName: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.minLength(2), Validators.maxLength(100)],
+    }),
+    description: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.minLength(5), Validators.maxLength(500)],
+    }),
+    priority: new FormControl<OrderPriority>('Normal', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+    idempotencyKey: new FormControl(createIdempotencyKey(), {
+      nonNullable: true,
+      validators: [
+        Validators.required,
+        Validators.minLength(8),
+        Validators.maxLength(128),
+        Validators.pattern(/^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/),
+      ],
+    }),
+  });
 
   protected readonly filteredItems = computed(() => {
     const status = this.statusFilter();
-    const team = this.teamFilter();
+    const priority = this.priorityFilter();
     const search = this.searchTerm().trim().toLocaleLowerCase();
 
-    return this.workItems().filter((item) => {
-      const matchesStatus = status === 'all' || item.status === status;
-      const matchesTeam = team === 'All teams' || item.team === team;
+    return this.orders().filter((order) => {
+      const matchesStatus = status === 'all' || order.status === status;
+      const matchesPriority = priority === 'all' || order.priority === priority;
       const searchTarget =
-        `${item.id} ${item.title} ${item.account} ${item.owner.name}`.toLocaleLowerCase();
+        `${order.externalReference} ${order.customerName} ${order.description} ${order.id}`.toLocaleLowerCase();
       const matchesSearch = !search || searchTarget.includes(search);
 
-      return matchesStatus && matchesTeam && matchesSearch;
+      return matchesStatus && matchesPriority && matchesSearch;
     });
   });
 
   protected readonly selectedItem = computed(
-    () => this.workItems().find((item) => item.id === this.selectedItemId()) ?? null,
+    () => this.orders().find((order) => order.id === this.selectedItemId()) ?? null,
   );
 
   protected readonly resultSummary = computed(
-    () => `${this.filteredItems().length} of ${this.workItems().length} workflows shown`,
+    () => `${this.filteredItems().length} of ${this.orders().length} orders shown`,
   );
+
+  protected readonly metrics = computed<readonly Metric[]>(() => {
+    const orders = this.orders();
+    const received = orders.filter((order) => order.status === 'Received').length;
+    const processing = orders.filter((order) => order.status === 'Processing').length;
+    const completed = orders.filter((order) => order.status === 'Completed').length;
+    const criticalActive = orders.filter(
+      (order) =>
+        order.priority === 'Critical' &&
+        (order.status === 'Received' || order.status === 'Processing'),
+    ).length;
+
+    return [
+      {
+        label: 'Loaded orders',
+        value: `${orders.length}`,
+        change: this.connectionMode() === 'live' ? 'Live' : 'Local',
+        context: 'current queue snapshot',
+        direction: 'flat',
+        tone: 'neutral',
+        icon: 'throughput',
+      },
+      {
+        label: 'Active queue',
+        value: `${received + processing}`,
+        change: `${received} received`,
+        context: `${processing} processing`,
+        direction: 'flat',
+        tone: processing ? 'warning' : 'neutral',
+        icon: 'cycle',
+      },
+      {
+        label: 'Completed',
+        value: `${completed}`,
+        change: orders.length ? `${Math.round((completed / orders.length) * 100)}%` : '0%',
+        context: 'of loaded orders',
+        direction: 'flat',
+        tone: 'positive',
+        icon: 'sla',
+      },
+      {
+        label: 'Critical active',
+        value: `${criticalActive}`,
+        change: criticalActive ? 'Review now' : 'Clear',
+        context: 'received or processing',
+        direction: 'flat',
+        tone: criticalActive ? 'critical' : 'positive',
+        icon: 'incident',
+      },
+    ];
+  });
+
+  protected readonly workload = computed(() => buildActivity(this.orders()));
+
+  ngOnInit(): void {
+    void this.operations.loadOrders();
+  }
 
   protected setStatusFilter(status: StatusFilter): void {
     this.statusFilter.set(status);
@@ -69,45 +172,89 @@ export class App {
     this.searchTerm.set((event.target as HTMLInputElement).value);
   }
 
-  protected onTeamChange(event: Event): void {
-    this.teamFilter.set((event.target as HTMLSelectElement).value);
+  protected onPriorityChange(event: Event): void {
+    this.priorityFilter.set((event.target as HTMLSelectElement).value as PriorityFilter);
   }
 
   protected resetFilters(): void {
     this.statusFilter.set('all');
-    this.teamFilter.set('All teams');
+    this.priorityFilter.set('all');
     this.searchTerm.set('');
   }
 
-  protected inspect(item: WorkItem): void {
+  protected inspect(item: Order): void {
     this.selectedItemId.set(item.id);
   }
 
-  protected updateSelectedStatus(status: OperationalStatus): void {
+  protected async performAction(request: OrderActionRequest): Promise<void> {
     const id = this.selectedItemId();
     if (id) {
-      this.operations.updateStatus(id, status);
+      await this.operations.transitionOrder(id, request.action, request.reason);
     }
   }
 
-  protected acknowledgeIncident(id: string): void {
-    this.operations.acknowledgeIncident(id);
+  protected focusCreateForm(): void {
+    document.getElementById('external-reference')?.focus();
   }
 
-  protected showSlaRisks(): void {
-    this.statusFilter.set('at-risk');
-    document.getElementById('workflows')?.scrollIntoView({ behavior: 'smooth' });
+  protected async refreshData(): Promise<void> {
+    await this.operations.loadOrders();
   }
 
-  protected refreshData(): void {
-    if (this.refreshing()) {
+  protected async createOrder(): Promise<void> {
+    if (this.createForm.invalid) {
+      this.createForm.markAllAsTouched();
       return;
     }
 
-    this.refreshing.set(true);
-    window.setTimeout(() => {
-      this.lastSynced.set(new Date());
-      this.refreshing.set(false);
-    }, 650);
+    const value = this.createForm.getRawValue();
+    const request: CreateOrderRequest = {
+      externalReference: value.externalReference,
+      customerName: value.customerName,
+      description: value.description,
+      priority: value.priority,
+    };
+    const created = await this.operations.createOrder(request, value.idempotencyKey);
+
+    if (created) {
+      this.selectedItemId.set(created.id);
+      document.getElementById('workflows')?.scrollIntoView({ behavior: 'smooth' });
+    }
   }
+
+  protected regenerateIdempotencyKey(): void {
+    this.createForm.controls.idempotencyKey.setValue(createIdempotencyKey());
+  }
+}
+
+function buildActivity(orders: readonly Order[], now = new Date()): readonly WorkloadPoint[] {
+  return Array.from({ length: 7 }, (_, index) => {
+    const day = new Date(now);
+    day.setHours(0, 0, 0, 0);
+    day.setDate(day.getDate() - (6 - index));
+
+    return {
+      label: day.toLocaleDateString('en-US', { weekday: 'short' }),
+      intake: orders.filter((order) => isSameDay(order.createdAt, day)).length,
+      completed: orders.filter((order) => order.completedAt && isSameDay(order.completedAt, day))
+        .length,
+      cancelled: orders.filter(
+        (order) => order.status === 'Cancelled' && isSameDay(order.updatedAt, day),
+      ).length,
+    };
+  });
+}
+
+function isSameDay(value: string, day: Date): boolean {
+  const date = new Date(value);
+  return (
+    date.getFullYear() === day.getFullYear() &&
+    date.getMonth() === day.getMonth() &&
+    date.getDate() === day.getDate()
+  );
+}
+
+function createIdempotencyKey(): string {
+  const suffix = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}`;
+  return `ops-ui-${suffix}`;
 }

@@ -42,15 +42,15 @@ tbody tr.is-selected {
 }
 
 .workflow,
-.owner {
+.customer {
   align-items: center;
   display: flex;
   gap: 0.65rem;
 }
 
 .workflow strong,
-.owner strong,
-.due {
+.customer strong,
+.updated {
   color: var(--text-strong);
   display: block;
   font-size: 0.73rem;
@@ -73,7 +73,7 @@ small {
   padding: 0.28rem 0.34rem;
 }
 
-.owner__avatar {
+.customer__avatar {
   align-items: center;
   background: #e8f5f3;
   border-radius: 50%;
@@ -104,10 +104,6 @@ small {
 
 .progress__label {
   margin-top: 0.3rem;
-}
-
-.due--late {
-  color: #ae3440;
 }
 
 .action {

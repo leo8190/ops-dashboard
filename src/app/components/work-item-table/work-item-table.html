@@ -1,15 +1,15 @@
 <div class="table-wrap">
   <table>
     <caption class="sr-only">
-      Operational workflows matching the selected filters
+      OrderFlow orders matching the selected filters
     </caption>
     <thead>
       <tr>
-        <th scope="col">Workflow</th>
-        <th scope="col">Owner</th>
+        <th scope="col">Order</th>
+        <th scope="col">Customer</th>
         <th scope="col">Status</th>
-        <th scope="col">Progress</th>
-        <th scope="col">Due</th>
+        <th scope="col">Workflow</th>
+        <th scope="col">Updated</th>
         <th scope="col"><span class="sr-only">Actions</span></th>
       </tr>
     </thead>
@@ -20,17 +20,19 @@
             <div class="workflow">
               <span class="priority">{{ item.priority }}</span>
               <span>
-                <strong>{{ item.title }}</strong>
-                <small>{{ item.id }} · {{ item.account }}</small>
+                <strong>{{ item.externalReference }}</strong>
+                <small>{{ item.description }}</small>
               </span>
             </div>
           </td>
           <td>
-            <div class="owner">
-              <span class="owner__avatar" aria-hidden="true">{{ item.owner.initials }}</span>
+            <div class="customer">
+              <span class="customer__avatar" aria-hidden="true">
+                {{ item.customerName.slice(0, 2).toUpperCase() }}
+              </span>
               <span>
-                <strong>{{ item.owner.name }}</strong>
-                <small>{{ item.team }}</small>
+                <strong>{{ item.customerName }}</strong>
+                <small>Version {{ item.version }}</small>
               </span>
             </div>
           </td>
@@ -39,26 +41,24 @@
             <div
               class="progress"
               role="progressbar"
-              [attr.aria-label]="item.title + ' progress'"
+              [attr.aria-label]="item.externalReference + ' workflow progress'"
               aria-valuemin="0"
               aria-valuemax="100"
-              [attr.aria-valuenow]="item.progress"
+              [attr.aria-valuenow]="progress(item.status)"
             >
-              <span [style.width.%]="item.progress"></span>
+              <span [style.width.%]="progress(item.status)"></span>
             </div>
-            <small class="progress__label">{{ item.progress }}%</small>
+            <small class="progress__label">{{ item.status }}</small>
           </td>
           <td>
-            <strong class="due" [class.due--late]="item.dueLabel.includes('overdue')">
-              {{ item.dueLabel }}
-            </strong>
-            <small>{{ item.updatedLabel }}</small>
+            <strong class="updated">{{ item.updatedAt | date: 'MMM d, HH:mm' }}</strong>
+            <small>Created {{ item.createdAt | date: 'MMM d, HH:mm' }}</small>
           </td>
           <td class="action">
             <button
               type="button"
               (click)="inspected.emit(item)"
-              [attr.aria-label]="'Inspect ' + item.title"
+              [attr.aria-label]="'Inspect ' + item.externalReference"
             >
               Inspect
               <span aria-hidden="true">→</span>
@@ -69,8 +69,8 @@
         <tr>
           <td colspan="6">
             <div class="empty">
-              <strong>No workflows match these filters</strong>
-              <span>Try another status, team, or search term.</span>
+              <strong>No orders match these filters</strong>
+              <span>Reset the filters or create the first order.</span>
             </div>
           </td>
         </tr>

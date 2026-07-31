@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 
-import { OperationalStatus } from '../../core/operations.models';
+import { OrderStatus } from '../../core/operations.models';
 
 @Component({
   selector: 'app-status-badge',
@@ -8,15 +8,11 @@ import { OperationalStatus } from '../../core/operations.models';
   styleUrl: './status-badge.scss',
 })
 export class StatusBadge {
-  readonly status = input.required<OperationalStatus>();
+  readonly status = input.required<OrderStatus>();
 
   protected readonly label = computed(() => {
-    const labels: Record<OperationalStatus, string> = {
-      'on-track': 'On track',
-      'at-risk': 'At risk',
-      blocked: 'Blocked',
-    };
-
-    return labels[this.status()];
+    return this.status();
   });
+
+  protected readonly cssClass = computed(() => this.status().toLowerCase());
 }

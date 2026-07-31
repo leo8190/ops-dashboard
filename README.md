@@ -4,124 +4,131 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![CI](https://img.shields.io/badge/CI-format%20%7C%20test%20%7C%20build-176b52)](#quality-gates)
 
-A responsive operations dashboard that helps a fictional team spot SLA risk, inspect
-work queues, and acknowledge incidents. It is a product-focused frontend case study
-built for my software engineering portfolio.
+An accessible Angular operations client for the
+[OrderFlow API](https://github.com/leo8190/orderflow-api). It turns the backend case
+study into a product workflow that non-technical reviewers can explore: create an
+order exactly once, inspect the queue, and run only the state transitions allowed by
+the API.
 
 > [!IMPORTANT]
-> This is a portfolio demonstration, not a production client system. Every company,
-> person, metric, workflow, and incident is fictional.
-
-## What it demonstrates
-
-- A polished, responsive dashboard built with Angular standalone components.
-- Signal-based state, derived filters, and immutable local updates.
-- Search, team and status filtering, workflow inspection, and status controls.
-- Acknowledgement states for operational incidents.
-- Accessible landmarks, native controls, visible focus, reduced-motion support, and
-  meaningful live regions.
-- Strict TypeScript, component boundaries, automated tests, formatting, and CI.
+> This is a self-directed portfolio case study, not a production client system. When
+> the API cannot be reached, the UI switches to a prominently labelled local demo.
+> Fallback orders and fallback mutations never reach a backend.
 
 ## Product walkthrough
 
-1. Scan weekly throughput, SLA compliance, incident count, and median cycle time.
-2. Compare seven-day workload with completed volume and team capacity.
-3. Acknowledge simulated incidents from the attention panel.
-4. Filter the execution queue by status or team, or search across key fields.
-5. Inspect a workflow and try a local status update.
+1. The client requests the first 100 orders from `GET /api/v1/orders/`.
+2. Create an order with an `Idempotency-Key`. Repeat the same body and key to see the
+   original order returned instead of a duplicate.
+3. Inspect an order. A received order can start or be cancelled; a processing order
+   can complete or be cancelled; terminal orders expose no invalid actions.
+4. Validation and `409 Conflict` problem details are shown in an accessible alert.
+5. Stop the API and refresh to see the honest offline/demo states instead of a broken
+   page or fabricated “live” connection.
 
-All interactions are deliberately client-side. Refreshing the browser restores the
-original fixture data.
+## What it demonstrates
 
-## Stack
+- Angular standalone components, strict TypeScript, signals, computed state, and
+  reactive forms.
+- A typed `HttpClient` boundary for list, create, start, complete, and cancel routes.
+- Runtime API configuration without rebuilding application code.
+- Idempotency-key handling and replay feedback from `Idempotency-Replayed`.
+- UI actions derived from the backend state machine:
+  `Received → Processing → Completed`, plus valid cancellation.
+- Loading, API error, disconnected snapshot, and local demo fallback states.
+- Accessible landmarks, native controls, visible focus, live regions, and
+  reduced-motion support.
+- Automated service and component tests plus production build verification.
 
-| Area       | Choice                                      |
-| ---------- | ------------------------------------------- |
-| Framework  | Angular 22.1, standalone components         |
-| Language   | TypeScript 6 in strict mode                 |
-| State      | Angular signals and computed state          |
-| Styling    | Component-scoped SCSS and CSS custom props  |
-| Tests      | Angular test builder with Vitest and jsdom  |
-| Automation | GitHub Actions and Dependabot               |
-| Data       | Typed, realistic fixtures; no external APIs |
+## Run the full-stack case study
 
-No UI kit or charting dependency is used. The chart and interaction states are built
-with semantic HTML, Angular, and CSS to keep the bundle and architecture easy to
-audit.
+Requirements: .NET 10 SDK, Node.js 22.22.3+ and npm 11+.
+
+From the sibling repositories, start the API first:
+
+```bash
+cd ../orderflow-api
+dotnet run --project src/OrderFlow.Api --urls http://localhost:5099
+```
+
+In another terminal, start this Angular client:
+
+```bash
+cd ../ops-dashboard
+npm ci
+npm start
+```
+
+Open <http://localhost:4200>. The API allows the Angular development origins through
+its configurable CORS policy.
+
+## Runtime API configuration
+
+The browser reads [`public/orderflow-config.js`](public/orderflow-config.js) before
+Angular starts:
+
+```js
+globalThis.ORDERFLOW_CONFIG = {
+  apiBaseUrl: 'http://localhost:5099',
+};
+```
+
+Change that URL to a deployed HTTPS API without recompiling the TypeScript app. The
+GitHub Pages workflow also reads the optional repository variable
+`ORDERFLOW_API_URL` and writes the runtime file before building. If the configured
+endpoint is unavailable, Pages remains usable through the clearly labelled local
+demo fallback.
 
 ## Architecture
 
 ```text
 src/app/
 ├── components/
-│   ├── app-header/
-│   ├── incident-panel/
-│   ├── metric-card/
-│   ├── status-badge/
-│   ├── work-item-detail/
-│   ├── work-item-table/
-│   └── workload-chart/
+│   ├── app-header/          connection and refresh state
+│   ├── metric-card/         derived queue metrics
+│   ├── status-badge/        API order states
+│   ├── work-item-detail/    valid transitions and cancellation
+│   ├── work-item-table/     typed order queue
+│   └── workload-chart/      seven-day activity derived from orders
 ├── core/
-│   ├── operations.models.ts
-│   ├── operations.service.ts
-│   └── operations.service.spec.ts
+│   ├── api-config.ts        runtime endpoint injection token
+│   ├── operations.models.ts API contracts and state rules
+│   └── operations.service.ts HTTP state, errors, and demo fallback
 ├── data/
-│   └── mock-operations.ts
-├── app.ts
-├── app.html
-└── app.scss
+│   └── demo-orders.ts       explicit offline-only fixtures
+├── app.ts                   filters, forms, and derived presentation state
+└── app.html
 ```
 
-`OperationsService` owns the editable in-memory state. `App` derives filtered and
-selected views, while presentation components communicate through typed inputs and
-outputs.
-
-## Run locally
-
-Requirements: Node.js 22.22.3+ (Node 22 LTS recommended) and npm 11+.
-
-```bash
-npm ci
-npm start
-```
-
-Open `http://localhost:4200`.
+`OperationsService` is the integration boundary. Successful HTTP responses replace
+or update the signal-backed queue. An initial network failure loads isolated demo
+fixtures; a failure after a live connection preserves the last server snapshot and
+marks it offline rather than silently mixing real and simulated data.
 
 ## Quality gates
-
-```bash
-npm run format:check
-npm run test:ci
-npm run build
-```
-
-Run everything with:
 
 ```bash
 npm run check
 ```
 
-CI executes the same clean-install quality gate for every pull request and push to
-`main`.
+This runs formatting verification, the Vitest suite, and a production Angular build.
+Tests cover live loading, network fallback, the idempotency header and replay, valid
+transition routes, local demo idempotency, status filtering, and action visibility.
 
-## Engineering decisions
+## GitHub Pages
 
-- **Signals over a larger state library:** this scope benefits from explicit local
-  state without introducing store ceremony.
-- **Typed fixture boundary:** mock data is isolated so a future HTTP repository can
-  replace it without rewriting presentation components.
-- **Native controls first:** buttons, labels, search, select, progress semantics, and
-  headings provide useful keyboard and assistive-technology behavior by default.
-- **Honest demo states:** every mutation is visibly described as simulated and
-  session-local.
+[`pages.yml`](.github/workflows/pages.yml) builds with
+`--base-href /ops-dashboard/` and prepares the standard GitHub Pages artifact. The
+workflow is intentionally only configuration in this repository: publishing still
+requires enabling **Settings → Pages → GitHub Actions** in the repository.
 
-## Possible next steps
+## Engineering boundaries
 
-- Replace the fixture service with an ASP.NET Core API.
-- Add role-aware routing and authentication.
-- Persist filters in query parameters.
-- Add component-level visual regression checks.
-- Instrument Web Vitals and error telemetry.
+- The API uses an in-memory repository, so live data resets when that process restarts.
+- Authentication, authorization, durable persistence, telemetry export, and
+  production hosting remain outside this portfolio scope.
+- The fallback is for product exploration, not offline synchronization; it never
+  queues mutations for later upload.
 
 ## License
 

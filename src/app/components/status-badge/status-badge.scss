@@ -22,20 +22,26 @@
   width: 0.42rem;
 }
 
-.status--on-track {
+.status--completed {
   background: #eaf7f2;
   border-color: #cde9de;
   color: #176b52;
 }
 
-.status--at-risk {
+.status--processing {
   background: #fff6e4;
   border-color: #f4ddb0;
   color: #955c06;
 }
 
-.status--blocked {
+.status--cancelled {
   background: #fceced;
   border-color: #f3ced1;
   color: #a7353f;
+}
+
+.status--received {
+  background: #eaf2fb;
+  border-color: #cadcf1;
+  color: #315f91;
 }
