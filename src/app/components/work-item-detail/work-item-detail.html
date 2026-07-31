@@ -1,0 +1,69 @@
+@if (item(); as currentItem) {
+  <aside class="detail" aria-labelledby="detail-title" aria-live="polite">
+    <div class="detail__heading">
+      <span class="priority">{{ currentItem.priority }}</span>
+      <button type="button" (click)="closeRequested.emit()" aria-label="Close workflow details">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m7 7 10 10M17 7 7 17"></path>
+        </svg>
+      </button>
+    </div>
+
+    <p class="detail__id">{{ currentItem.id }}</p>
+    <h3 id="detail-title">{{ currentItem.title }}</h3>
+    <p class="detail__summary">{{ currentItem.summary }}</p>
+
+    <dl>
+      <div>
+        <dt>Account</dt>
+        <dd>{{ currentItem.account }}</dd>
+      </div>
+      <div>
+        <dt>Owner</dt>
+        <dd>{{ currentItem.owner.name }}</dd>
+      </div>
+      <div>
+        <dt>Team</dt>
+        <dd>{{ currentItem.team }}</dd>
+      </div>
+      <div>
+        <dt>Deadline</dt>
+        <dd>{{ currentItem.dueLabel }}</dd>
+      </div>
+    </dl>
+
+    <div class="detail__status">
+      <span>Current status</span>
+      <app-status-badge [status]="currentItem.status" />
+    </div>
+
+    <fieldset>
+      <legend>Update simulated status</legend>
+      <div class="status-options">
+        @for (status of statuses; track status) {
+          <button
+            type="button"
+            [class.is-active]="currentItem.status === status"
+            [attr.aria-pressed]="currentItem.status === status"
+            (click)="statusChanged.emit(status)"
+          >
+            {{ statusLabel(status) }}
+          </button>
+        }
+      </div>
+    </fieldset>
+
+    <p class="detail__note">Changes stay in this browser session and do not affect real systems.</p>
+  </aside>
+} @else {
+  <aside class="detail detail--empty" aria-label="Workflow details">
+    <span class="empty__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d="M6 3.5h9l3 3V20H6z"></path>
+        <path d="M9 10h6m-6 3h6m-6 3h4"></path>
+      </svg>
+    </span>
+    <strong>Select a workflow</strong>
+    <p>Inspect an item to review context and try the status controls.</p>
+  </aside>
+}
