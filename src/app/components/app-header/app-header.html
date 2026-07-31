@@ -1,0 +1,42 @@
+<header class="header">
+  <div class="header__inner">
+    <a class="brand" href="#overview" aria-label="Ops Command Center home">
+      <span class="brand__mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32">
+          <path d="M7 9.5 16 4l9 5.5v13L16 28l-9-5.5z"></path>
+          <path d="m11 17 3.1 3L21 12.5"></path>
+        </svg>
+      </span>
+      <span>
+        <span class="brand__name">Ops Command Center</span>
+        <span class="brand__caption">Portfolio demonstration</span>
+      </span>
+    </a>
+
+    <nav class="header__nav" aria-label="Dashboard sections">
+      <a href="#overview">Overview</a>
+      <a href="#workflows">Workflows</a>
+      <a href="#incidents">Incidents</a>
+    </nav>
+
+    <div class="header__actions">
+      <span class="sync">
+        <span class="sync__dot" aria-hidden="true"></span>
+        Synced {{ lastSynced() | date: 'HH:mm' }}
+      </span>
+      <button
+        class="refresh"
+        type="button"
+        [disabled]="refreshing()"
+        (click)="refreshRequested.emit()"
+        aria-label="Refresh simulated data"
+      >
+        <svg [class.is-spinning]="refreshing()" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20 6v5h-5M4 18v-5h5"></path>
+          <path d="M18.1 9A7 7 0 0 0 6.5 6.5L4 9m2 6a7 7 0 0 0 11.5 2.5L20 15"></path>
+        </svg>
+      </button>
+      <span class="avatar" title="Demo operator">LA</span>
+    </div>
+  </div>
+</header>

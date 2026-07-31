@@ -1,0 +1,142 @@
+<a class="skip-link" href="#main-content">Skip to dashboard</a>
+
+<app-header
+  [lastSynced]="lastSynced()"
+  [refreshing]="refreshing()"
+  (refreshRequested)="refreshData()"
+/>
+
+<main id="main-content">
+  <section class="hero" id="overview" aria-labelledby="page-title">
+    <div>
+      <p class="eyebrow">Simulated operations workspace</p>
+      <h1 id="page-title">Operations overview</h1>
+      <p class="hero__lead">Keep work moving before risk becomes an incident.</p>
+    </div>
+    <button class="risk-button" type="button" (click)="showSlaRisks()">
+      Review SLA risks
+      <span aria-hidden="true">→</span>
+    </button>
+  </section>
+
+  <aside class="demo-note" aria-label="Portfolio demo disclosure">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="8"></circle>
+      <path d="M12 10.5v5m0-8v.1"></path>
+    </svg>
+    <p>
+      <strong>Portfolio demo.</strong>
+      Every company, person, metric, and operational event on this page is fictional.
+    </p>
+  </aside>
+
+  <section class="metrics" aria-label="Key performance indicators">
+    @for (metric of metrics; track metric.label) {
+      <app-metric-card [metric]="metric" />
+    }
+  </section>
+
+  <section class="signal-grid" aria-label="Operational signals">
+    <app-workload-chart [data]="workload" />
+    <app-incident-panel [incidents]="incidents()" (acknowledged)="acknowledgeIncident($event)" />
+  </section>
+
+  <section class="workflows" id="workflows" aria-labelledby="workflows-title">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Execution queue</p>
+        <h2 id="workflows-title">Operational workflows</h2>
+        <p>Prioritize work using live status, ownership, and SLA context.</p>
+      </div>
+      <span class="result-summary" aria-live="polite">{{ resultSummary() }}</span>
+    </div>
+
+    <div class="toolbar" aria-label="Workflow filters">
+      <label class="search">
+        <span class="sr-only">Search workflows</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="10.5" cy="10.5" r="5.5"></circle>
+          <path d="m15 15 4 4"></path>
+        </svg>
+        <input
+          type="search"
+          placeholder="Search ID, workflow, account, owner"
+          [value]="searchTerm()"
+          (input)="onSearch($event)"
+        />
+      </label>
+
+      <div class="status-filters" aria-label="Filter by status">
+        <button
+          type="button"
+          data-filter="all"
+          [class.is-active]="statusFilter() === 'all'"
+          [attr.aria-pressed]="statusFilter() === 'all'"
+          (click)="setStatusFilter('all')"
+        >
+          All
+        </button>
+        <button
+          type="button"
+          data-filter="on-track"
+          [class.is-active]="statusFilter() === 'on-track'"
+          [attr.aria-pressed]="statusFilter() === 'on-track'"
+          (click)="setStatusFilter('on-track')"
+        >
+          On track
+        </button>
+        <button
+          type="button"
+          data-filter="at-risk"
+          [class.is-active]="statusFilter() === 'at-risk'"
+          [attr.aria-pressed]="statusFilter() === 'at-risk'"
+          (click)="setStatusFilter('at-risk')"
+        >
+          At risk
+        </button>
+        <button
+          type="button"
+          data-filter="blocked"
+          [class.is-active]="statusFilter() === 'blocked'"
+          [attr.aria-pressed]="statusFilter() === 'blocked'"
+          (click)="setStatusFilter('blocked')"
+        >
+          Blocked
+        </button>
+      </div>
+
+      <label class="team-filter">
+        <span class="sr-only">Filter by team</span>
+        <select [value]="teamFilter()" (change)="onTeamChange($event)">
+          @for (team of teams(); track team) {
+            <option [value]="team">{{ team }}</option>
+          }
+        </select>
+      </label>
+
+      @if (statusFilter() !== 'all' || teamFilter() !== 'All teams' || searchTerm()) {
+        <button class="reset" type="button" (click)="resetFilters()">Reset</button>
+      }
+    </div>
+
+    <div class="workflow-layout">
+      <div class="table-card">
+        <app-work-item-table
+          [items]="filteredItems()"
+          [selectedItemId]="selectedItemId()"
+          (inspected)="inspect($event)"
+        />
+      </div>
+      <app-work-item-detail
+        [item]="selectedItem()"
+        (closeRequested)="selectedItemId.set(null)"
+        (statusChanged)="updateSelectedStatus($event)"
+      />
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>Ops Command Center · Angular portfolio demo</span>
+  <span>Built with fictional data for product and engineering demonstration.</span>
+</footer>

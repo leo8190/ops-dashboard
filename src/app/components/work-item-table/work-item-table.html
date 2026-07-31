@@ -1,0 +1,80 @@
+<div class="table-wrap">
+  <table>
+    <caption class="sr-only">
+      Operational workflows matching the selected filters
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">Workflow</th>
+        <th scope="col">Owner</th>
+        <th scope="col">Status</th>
+        <th scope="col">Progress</th>
+        <th scope="col">Due</th>
+        <th scope="col"><span class="sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (item of items(); track item.id) {
+        <tr data-testid="work-item-row" [class.is-selected]="selectedItemId() === item.id">
+          <td>
+            <div class="workflow">
+              <span class="priority">{{ item.priority }}</span>
+              <span>
+                <strong>{{ item.title }}</strong>
+                <small>{{ item.id }} · {{ item.account }}</small>
+              </span>
+            </div>
+          </td>
+          <td>
+            <div class="owner">
+              <span class="owner__avatar" aria-hidden="true">{{ item.owner.initials }}</span>
+              <span>
+                <strong>{{ item.owner.name }}</strong>
+                <small>{{ item.team }}</small>
+              </span>
+            </div>
+          </td>
+          <td><app-status-badge [status]="item.status" /></td>
+          <td>
+            <div
+              class="progress"
+              role="progressbar"
+              [attr.aria-label]="item.title + ' progress'"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              [attr.aria-valuenow]="item.progress"
+            >
+              <span [style.width.%]="item.progress"></span>
+            </div>
+            <small class="progress__label">{{ item.progress }}%</small>
+          </td>
+          <td>
+            <strong class="due" [class.due--late]="item.dueLabel.includes('overdue')">
+              {{ item.dueLabel }}
+            </strong>
+            <small>{{ item.updatedLabel }}</small>
+          </td>
+          <td class="action">
+            <button
+              type="button"
+              (click)="inspected.emit(item)"
+              [attr.aria-label]="'Inspect ' + item.title"
+            >
+              Inspect
+              <span aria-hidden="true">→</span>
+            </button>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="6">
+            <div class="empty">
+              <strong>No workflows match these filters</strong>
+              <span>Try another status, team, or search term.</span>
+            </div>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

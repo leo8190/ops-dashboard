@@ -1,0 +1,41 @@
+:host {
+  display: inline-flex;
+}
+
+.status {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: 0.4rem;
+  line-height: 1;
+  padding: 0.38rem 0.58rem;
+  white-space: nowrap;
+}
+
+.status__dot {
+  background: currentColor;
+  border-radius: 50%;
+  height: 0.42rem;
+  width: 0.42rem;
+}
+
+.status--on-track {
+  background: #eaf7f2;
+  border-color: #cde9de;
+  color: #176b52;
+}
+
+.status--at-risk {
+  background: #fff6e4;
+  border-color: #f4ddb0;
+  color: #955c06;
+}
+
+.status--blocked {
+  background: #fceced;
+  border-color: #f3ced1;
+  color: #a7353f;
+}
