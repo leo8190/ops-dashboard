@@ -40,6 +40,11 @@ the API.
   reduced-motion support.
 - Automated service and component tests plus production build verification.
 
+## Cursor
+
+This repo is ready to open as a Cursor project, together with the sibling
+[orderflow-api](https://github.com/leo8190/orderflow-api) checkout. Agent notes live in `AGENTS.md`.
+
 ## Run the full-stack case study
 
 Requirements: .NET 10 SDK, Node.js 22.22.3+ and npm 11+.

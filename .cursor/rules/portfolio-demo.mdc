@@ -1,0 +1,13 @@
+---
+description: Ops dashboard is a portfolio Angular client for OrderFlow
+alwaysApply: true
+---
+
+# Ops Command Center portfolio demo
+
+- Treat this as a self-directed demo, not a client or production system.
+- Keep the OrderFlow HTTP boundary in `OperationsService`. Do not invent extra backends.
+- If the API is down on first load, use labelled local demo fixtures. If it fails after a live connection, keep the last snapshot and mark it offline. Never mix the two silently.
+- Runtime API URL comes from `public/orderflow-config.js`. Do not hard-code a production secret or commit `.env*` files.
+- UI actions must follow `Received → Processing → Completed` plus valid cancellation. Do not expose invalid transitions.
+- Keep accessibility: landmarks, native controls, visible focus, live regions, reduced-motion.
