@@ -8,6 +8,7 @@ Accessible Angular operations UI: list/create orders, idempotent retries, and on
 
 Pages: https://leo8190.github.io/ops-dashboard/
 Repo: https://github.com/leo8190/ops-dashboard
+Cloud Agent env: `.cursor/environment.json` (`npm ci`, Angular on port 4200). No secrets in that file.
 
 ## Stack
 
