@@ -1,14 +1,17 @@
-# Ops Command Center — Cursor / agent notes
+# Ops Command Center — Cursor agents
 
-Public portfolio demo: an Angular client for [OrderFlow API](https://github.com/leo8190/orderflow-api). When the API is unreachable, the UI must switch to a clearly labelled local demo. Fallback orders never reach a backend.
+Public portfolio client for [orderflow-api](https://github.com/leo8190/orderflow-api). Work only in this repository unless the task also names the API repo.
 
-This is an original demo by Leonardo Apollonio (`leo8190/ops-dashboard`). It is not client work.
+## Product
+
+Accessible Angular operations UI: list/create orders, idempotent retries, and only the transitions the API allows. If the API is down, show the labelled local demo. Never mix live and demo data silently.
+
+Pages: https://leo8190.github.io/ops-dashboard/
+Repo: https://github.com/leo8190/ops-dashboard
 
 ## Stack
 
-- Angular 22 + TypeScript 6
-- Node 22.22.3+ and npm 11+
-- Sibling API: `../orderflow-api` on `http://localhost:5099`
+Angular 22, TypeScript, Vitest. Node 22.22.3+ / npm 11+. Runtime API URL is `public/orderflow-config.js` (`ORDERFLOW_CONFIG.apiBaseUrl`).
 
 ## Commands
 
@@ -18,29 +21,12 @@ npm start
 npm run check
 ```
 
-`npm run check` runs format verification, Vitest, and a production build.
-
-## Full-stack local run
-
-```bash
-cd ../orderflow-api
-dotnet run --project src/OrderFlow.Api --urls http://localhost:5099
-```
-
-```bash
-cd ../ops-dashboard
-npm start
-```
-
-Open http://localhost:4200. Runtime API URL lives in `public/orderflow-config.js` (`ORDERFLOW_CONFIG.apiBaseUrl`).
+Full-stack local: start `../orderflow-api` on `http://localhost:5099`, then this app on `http://localhost:4200`.
 
 ## Boundaries
 
-- Do not mix live API data with demo fixtures after a successful connection.
-- Do not add authentication, durable persistence, or silent offline sync.
-- Do not commit `.env*` files or secrets.
-- Keep UI actions derived from the API state machine: `Received → Processing → Completed`, plus valid cancellation.
-
-## Live demo
-
-https://leo8190.github.io/ops-dashboard/
+- Do not add auth, durable sync, or telemetry export.
+- Do not treat the demo fallback as offline queueing.
+- Do not commit API keys or secrets.
+- GitHub Pages still needs Settings → Pages → GitHub Actions if publishing is requested.
+- Open Dependabot PRs (#5, #6, #7) are Pages action bumps; do not merge them from here without running `npm run check`.

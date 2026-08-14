@@ -42,8 +42,10 @@ the API.
 
 ## Cursor
 
-This repo is ready to open as a Cursor project, together with the sibling
-[orderflow-api](https://github.com/leo8190/orderflow-api) checkout. Agent notes live in `AGENTS.md`.
+Ready for Cursor Cloud Agents and My Machines with the sibling
+[orderflow-api](https://github.com/leo8190/orderflow-api). Agent notes live in
+`AGENTS.md`. `.cursor/environment.json` installs with `npm ci` and starts
+Angular on port 4200. Do not add secrets to the environment file.
 
 ## Run the full-stack case study
 
