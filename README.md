@@ -40,6 +40,13 @@ the API.
   reduced-motion support.
 - Automated service and component tests plus production build verification.
 
+## Cursor
+
+Ready for Cursor Cloud Agents and My Machines with the sibling
+[orderflow-api](https://github.com/leo8190/orderflow-api). Agent notes live in
+`AGENTS.md`. `.cursor/environment.json` installs with `npm ci` and starts
+Angular on port 4200. Do not add secrets to the environment file.
+
 ## Run the full-stack case study
 
 Requirements: .NET 10 SDK, Node.js 22.22.3+ and npm 11+.
