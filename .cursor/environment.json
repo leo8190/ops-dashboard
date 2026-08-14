@@ -1,0 +1,18 @@
+{
+  "name": "Ops Command Center",
+  "install": "npm ci",
+  "terminals": [
+    {
+      "name": "Angular",
+      "command": "npx ng serve --host 0.0.0.0 --port 4200",
+      "description": "Ops dashboard development server"
+    }
+  ],
+  "ports": [
+    {
+      "name": "Ops dashboard",
+      "port": 4200
+    }
+  ],
+  "repositoryDependencies": ["github.com/leo8190/orderflow-api"]
+}
