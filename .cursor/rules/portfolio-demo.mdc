@@ -1,0 +1,11 @@
+---
+description: Ops Command Center live-vs-demo data boundary
+alwaysApply: true
+---
+
+Public Angular client for leo8190/orderflow-api.
+
+- If the API is unreachable, show the labelled local demo. Never mix live and demo data silently.
+- Do not add authentication, durable persistence, or silent offline sync.
+- Do not commit `.env*` files or secrets.
+- Keep UI actions derived from the API state machine: `Received → Processing → Completed`, plus valid cancellation.
