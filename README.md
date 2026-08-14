@@ -40,6 +40,14 @@ the API.
   reduced-motion support.
 - Automated service and component tests plus production build verification.
 
+## Cursor
+
+This repository is ready for Cursor Cloud Agents and My Machines. `AGENTS.md` has the product rules. `.cursor/environment.json` installs Node 22 dependencies with `npm ci` and starts Angular on port 4200. The sibling [OrderFlow API](https://github.com/leo8190/orderflow-api) is listed as a repository dependency so a Cloud Agent token can reach both repos. Do not add secrets to the environment file.
+
+## Cursor
+
+This repository is ready for Cursor Cloud Agents and My Machines, together with the sibling [orderflow-api](https://github.com/leo8190/orderflow-api). Agent notes live in `AGENTS.md`. `.cursor/environment.json` runs `npm ci` and starts Angular on port 4200. Do not add secrets to the environment file.
+
 ## Run the full-stack case study
 
 Requirements: .NET 10 SDK, Node.js 22.22.3+ and npm 11+.
